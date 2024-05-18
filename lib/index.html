@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Artyom Example</title>
+    <!-- <script src="/lib/artyom.window.min.js"></script> -->
+  </head>
+  <body>
+    <h1>Artyom Example</h1>
+    <button
+      type="button"
+      id="speech"
+      style="background-color: blue; width: 300px; height: 300px"
+      onclick="startContinuousArtyom()"
+    ></button>
+    <script>
+      window.onerror = function (message, source, lineno, colno, error) {
+        console.error(
+          `JavaScript error: ${message}\n${source}:${lineno}:${colno}\n${error}`
+        );
+      };
+    </script>
+    <!-- <script>
+      const artyom = new Artyom();
+
+      // This function activates artyom and will listen all that you say forever (requires https conection, otherwise a dialog will request if you allow the use of the microphone)
+      function startContinuousArtyom() {
+        // artyom.fatality(); // use this to stop any of
+
+        // setTimeout(function () {
+        // if you use artyom.fatality , wait 250 ms to initialize again.
+        artyom
+          .initialize({
+            lang: "en-GB", // A lot of languages are supported. Read the docs !
+            continuous: true, // Artyom will listen forever
+            listen: true, // Start recognizing
+            debug: true, // Show everything in the console
+            speed: 1, // talk normally
+          })
+          .then(function () {
+            console.log("Ready to work !");
+          });
+        //  }, 250);
+      }
+
+      artyom.say("Te quiero Mucho", function () {
+        console.log("Finished saying Hello World");
+      });
+
+      artyom.addCommands([
+        {
+          index: "greet",
+          value: "hello world",
+        },
+      ]);
+
+      artyom.listen(true);
+
+      document.getElementById("speech").addEventListener("click", function () {
+        artyom.speak("Goodbye World");
+        artyom.say("Goodbye World", function () {
+          console.log("Finished saying Goodbye World");
+        });
+      });
+    </script> -->
+  </body>
+</html>

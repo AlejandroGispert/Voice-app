@@ -1,0 +1,36 @@
+<!-- artyom_page.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Artyom Integration</title>
+    <script src="../artyom.window.min.js"></script>
+  </head>
+  <body>
+    <h1>Artyom Integration papa</h1>
+    <div id="artyom-container"></div>
+    <script>
+      window.addEventListener("error", function (error) {
+        // Send error message to Dart
+        window.postMessage(
+          JSON.stringify({ type: "ERROR", message: error.message }),
+          "*"
+        );
+      });
+    </script>
+
+    <script>
+      const artyom = new Artyom();
+      artyom
+        .initialize({
+          lang: "en-US",
+          continuous: true,
+          listen: true,
+          debug: false,
+          speed: 1,
+        })
+        .then(() => {
+          console.log("Artyom initialized");
+        });
+    </script>
+  </body>
+</html>
