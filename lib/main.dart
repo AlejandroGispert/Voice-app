@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:english_words/english_words.dart';
-// import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter_tts/flutter_tts.dart'; // Ensure FlutterTts is imported
-import 'package:speech_to_text/speech_to_text.dart'
-    as stt; // Ensure SpeechToText is imported
-// import 'artyom_integration.dart'; // Adjust the import path as necessary
-// import 'package:speech_to_text/speech_recognition_error.dart';
-// import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(MyApp());
@@ -43,12 +39,18 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
 
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
   final FlutterTts flutterTts = FlutterTts();
   final stt.SpeechToText speech = stt.SpeechToText();
   String lastRecognizedSentence = '';
+  bool isListening = false;
 
   @override
   Widget build(BuildContext context) {
@@ -61,54 +63,22 @@ class MyHomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             InkWell(
-              onTap: () async {
-                List<String> sentences = [
-                  'Hello',
-                  'How are you?',
-                  'What is your name?',
-                  'Are you good?',
-                  "What day is today?",
-                  "What date is today?"
-                      "What time is it?",
-                ];
-                for (String sentence in sentences) {
-                  await speech.listen(localeId: 'en_US');
-                  // Listen for a short period or until the user stops speaking
-                  await Future.delayed(
-                      Duration(seconds: 2)); // Adjust delay as needed
-                  print(
-                      'Recognized words: $sentence'); // Process recognized words
-                  lastRecognizedSentence =
-                      sentence; // Update the last recognized sentence
-                  await speech.stop();
-                }
-              },
+              onTap: () => _listenAndRespond(),
               child: BigCard(pair: pair),
             ),
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                speakText('Hello');
-                speakText('Lexy');
+                _speakText('Hello');
+                _speakText('Lexy');
               },
               child: Text('Speak Text'),
             ),
             SizedBox(height: 20),
-            Text(
-                'Recognized Text: $lastRecognizedSentence'), // Display the last processed sentence
+            Text('Recognized Text: $lastRecognizedSentence'),
             ElevatedButton(
-              onPressed: () async {
-                await speech.initialize();
-
-                await speech.listen(localeId: 'en_US');
-                // Listen for a short period or until the user stops speaking
-                await Future.delayed(
-                    Duration(seconds: 2)); // Adjust delay as needed
-                print(
-                    'Recognized words: $lastRecognizedSentence'); // Process recognized words
-                await speech.stop();
-              },
-              child: Text('Listen'),
+              onPressed: _listen,
+              child: Text(isListening ? 'Listening...' : 'Listen'),
             ),
           ],
         ),
@@ -116,8 +86,54 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-  void speakText(String text) async {
+  void _speakText(String text) async {
     await flutterTts.speak(text);
+  }
+
+  void _listen() async {
+    if (!isListening) {
+      bool available = await speech.initialize();
+      if (available) {
+        setState(() => isListening = true);
+        speech.listen(onResult: (result) {
+          setState(() {
+            lastRecognizedSentence = result.recognizedWords;
+            isListening = false;
+          });
+          _processCommand(lastRecognizedSentence);
+        });
+      }
+    } else {
+      setState(() => isListening = false);
+      speech.stop();
+    }
+  }
+
+  void _listenAndRespond() async {
+    if (!isListening) {
+      bool available = await speech.initialize();
+      if (available) {
+        setState(() => isListening = true);
+        speech.listen(onResult: (result) {
+          setState(() {
+            lastRecognizedSentence = result.recognizedWords;
+            isListening = false;
+          });
+          _processCommand(lastRecognizedSentence);
+        });
+      }
+    } else {
+      setState(() => isListening = false);
+      speech.stop();
+    }
+  }
+
+  void _processCommand(String command) {
+    if (command.toLowerCase().contains("what day is today")) {
+      String day = DateFormat('EEEE').format(DateTime.now());
+      _speakText("Today is $day");
+    }
+    // Add more command processing as needed
   }
 }
 
@@ -133,9 +149,9 @@ class BigCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textStyle = TextStyle(
-      fontSize: 24, // Example font size
-      fontWeight: FontWeight.bold, // Example font weight
-      color: theme.colorScheme.onPrimary, // Using theme color for contrast
+      fontSize: 24,
+      fontWeight: FontWeight.bold,
+      color: theme.colorScheme.onPrimary,
     );
 
     return ClipRRect(
